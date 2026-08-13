@@ -195,7 +195,7 @@ input[type=range]{width:70px}
 </style>
 </head><body>
 <div class="app">
-<div class="hdr"><h1>FDS Strategy Dashboard <span style="font-weight:400;color:#999">v0.4</span></h1><p>Faculty of Design &amp; Society &middot; Strategy draft 0.3 &middot; 6 themes, 14 objectives, 37 initiatives, 30 outcomes, 61 Community of Practice inputs</p></div>
+<div class="hdr"><h1>FDS Strategy Dashboard <span style="font-weight:400;color:#999">v0.4</span></h1><p>Faculty of Design &amp; Society</p></div>
 <div class="tabs">
   <button class="tab on" onclick="goTab('upload',this)">Load data</button>
   <button class="tab" onclick="goTab('sandbox',this)">Sandbox</button>
@@ -205,42 +205,16 @@ input[type=range]{width:70px}
 <div class="panel on" id="panel-upload">
 
   <div style="max-width:560px;padding:2.5rem 0 2rem">
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#aaa;margin-bottom:14px">FDS Strategy Dashboard</div>
-    <h1 style="font-size:28px;font-weight:700;line-height:1.3;color:#111;margin:0 0 18px">Six themes, and where<br>they came from.</h1>
-    <p style="font-size:13px;line-height:1.85;color:#555;margin:0 0 28px">The Faculty of Design &amp; Society strategy, draft 0.3, is loaded and ready. Six strategic themes, each with its objectives, initiatives and outcomes — and beneath them the 61 ideas the three Communities of Practice and the Indigenous CoP contributed, mapped to the themes they shaped. Work through it theme by theme in the <strong>Sandbox</strong>. Your edits are saved in this browser; reset below to return to the strategy as drafted.</p>
-    <!-- Landing choices (side by side, highlight on hover only) -->
+    <h1 style="font-size:28px;font-weight:700;line-height:1.3;color:#111;margin:0 0 18px">FDS Strategy Dashboard</h1>
+    <p style="font-size:13px;line-height:1.85;color:#555;margin:0 0 28px">This dashboard is used to build the FDS strategy using the results that have come out of the different Communities of Practice. Load a saved version from the shared library to continue working on it, or start from scratch with an empty structure and the CoP evidence alongside.</p>
     <div id="landing-choices" style="display:flex;flex-direction:row;flex-wrap:wrap;gap:12px;max-width:520px">
-      <button class="land-btn" onclick="sbResetV03()"><span class="lb-title">Reset to v0.3</span><span class="lb-sub">Discard your edits and reload the strategy as drafted</span></button>
-      <button class="land-btn" onclick="showBuildOwn()"><span class="lb-title">Build your own</span><span class="lb-sub">Download the template, then upload your file</span></button>
+      <button class="land-btn" onclick="libOpenLoad(true)"><span class="lb-title">Load</span><span class="lb-sub">Choose a saved version from the shared library</span></button>
+      <button class="land-btn" onclick="sbStartScratch()"><span class="lb-title">Start from scratch</span><span class="lb-sub">Open an empty sandbox with just the CoP evidence</span></button>
     </div>
-
-    <!-- Build / upload your own (revealed beneath the buttons) -->
-    <div id="build-own" style="display:none;margin-top:24px;max-width:560px">
-    <a href="https://www.dropbox.com/scl/fi/cj7lt3oxbdsc7cshp35aj/Strategy-Dashboard-Template.xlsx?rlkey=de07lend13q06msysnkkyvc6s&dl=0" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:#111;color:#fff;text-decoration:none;font-size:12px;font-weight:600;padding:10px 20px;border-radius:8px;cursor:pointer;letter-spacing:0.01em;box-shadow:0 2px 8px rgba(0,0,0,0.14);margin-bottom:20px">
-      <svg width="13" height="14" viewBox="0 0 13 14" fill="none"><path d="M6.5 1.5v8M3 7.5l3.5 3.5 3.5-3.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 12.5h11" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
-      Download template
-    </a>
-
-    <!-- Upload strip -->
-    <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)" style="padding:1rem 1.25rem;display:flex;flex-direction:row;align-items:center;gap:14px;text-align:left;cursor:pointer;border-radius:10px">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-        <rect width="28" height="28" rx="7" fill="#eef2ff"/>
-        <path d="M14 21V10M10 14l4-5 4 5" stroke="#4A60D8" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M8 23h12" stroke="#4A60D8" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:#222;margin-bottom:2px">Drop your completed file here, or click to browse</div>
-        <div style="font-size:11px;color:#aaa">Accepts .xlsx &nbsp;·&nbsp; .xls &nbsp;·&nbsp; .csv</div>
-      </div>
-      <button class="pri" onclick="event.stopPropagation();document.getElementById('file-input').click()" style="font-size:11px;padding:8px 16px;flex-shrink:0">Choose file</button>
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="readExcel(this)">
-    </div>
-    </div>
-
   </div>
 
-  <div class="status" id="ustatus"></div>
-  <div class="preview" id="preview">
+  <div class="status" id="ustatus" style="display:none"></div>
+  <div class="preview" id="preview" style="display:none">
     <h4>Loaded data</h4>
     <div class="stat-row" id="ustats"></div>
     <div id="preview-table" style="margin-top:10px;max-height:200px;overflow-y:auto;font-size:11px"></div>
@@ -265,9 +239,9 @@ input[type=range]{width:70px}
       </div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-      <button onclick="sbLoadBackup()">Load backup</button>
+      <button class="lm" onclick="libDoOverwrite()">Save (overwrite existing)</button>
       <button class="lm" onclick="libOpenSave()">Save to library</button>
-      <button class="lm" onclick="libOpenLoad()">Load from library…</button>
+      <button class="lm" onclick="libOpenLoad(true)">Load from library…</button>
       <button onclick="libOpenMan()">Manage library</button>
     </div>
   </div>
@@ -3268,11 +3242,11 @@ function sbResetV03(){
   showLoadedSummary();
 }
 function sbHydrate(){
+  // The dashboard always opens EMPTY — just the CoP evidence, no structure.
+  // A strategy only appears once the user loads a version from the shared library.
   try{
-    const d=localStorage.getItem(SB_KEY);
-    if(d){ SB=JSON.parse(d); }
-    else{ SB=JSON.parse(JSON.stringify(FDS_SEED)); sbPersist(); }
-  }catch(e){}
+    SB={ideas:JSON.parse(JSON.stringify((FDS_SEED&&FDS_SEED.ideas)||[])),themes:[],objectives:[],initiatives:[],outcomes:[],_n:1};
+  }catch(e){ SB={ideas:[],themes:[],objectives:[],initiatives:[],outcomes:[],_n:1}; }
   if(!SB.initiatives)SB.initiatives=[];
   if(!SB.outcomes)SB.outcomes=[];
   SB.initiatives.forEach(g=>{if(!g.people)g.people=[];});
@@ -4054,6 +4028,18 @@ function sbClearAll(){if(!confirm('Clear everything? This empties the whole stru
 // locally, set this to your deployed URL, e.g. "https://your-app.vercel.app".
 const LIB_API='';
 let LIB_ITEMS=[];
+let LIB_CURRENT=null;   // {id,name} of the library entry currently loaded (null = nothing loaded)
+let LIB_GO_SB=false;    // after a successful library load, jump to the Sandbox tab
+// Start from scratch — empty structure, CoP evidence only
+function sbStartScratch(){
+  sbHydrate();sbPersist();
+  LIB_CURRENT=null;libSetLoaded('');
+  try{sbSelTheme=null;}catch(e){}
+  try{sbRender();}catch(e){}
+  try{mapRender();}catch(e){}
+  try{refRender();}catch(e){}
+  goSandbox();
+}
 function libEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
 function libFmtDate(iso){if(!iso)return'';const d=new Date(iso);if(isNaN(d.getTime()))return'';const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.getDate()+' '+m[d.getMonth()]+' '+d.getFullYear();}
 function libDisplayName(it){const dt=libFmtDate(it.uploadedAt);return dt?it.name+' \u2014 '+dt:it.name;}
@@ -4091,12 +4077,30 @@ async function libDoSave(){
     const r=await fetch(LIB_API+'/api/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,state:SB})});
     if(r.status===409){document.getElementById('lib-note').textContent='That name is already in use \u2014 choose another.';return;}
     if(!r.ok)throw new Error('save failed ('+r.status+')');
+    let j=null;try{j=await r.json();}catch(e){}
+    if(j&&j.id)LIB_CURRENT={id:j.id,name};
     libCloseSave();
     libSetLoaded(name+' \u2014 '+libFmtDate(new Date().toISOString()));
     alert('Saved to the shared library as "'+name+'".');
   }catch(err){
     alert("Couldn't save to the shared library.\nIf you're opening the file directly, use the hosted (Vercel) version instead.\n\n("+((err&&err.message)||err)+")");
   }finally{btn.disabled=false;btn.textContent=was;}
+}
+// ---- Save (overwrite existing) — updates the currently-loaded library entry in place ----
+async function libDoOverwrite(){
+  if(!LIB_CURRENT){alert('Nothing is loaded from the library yet.\nUse "Load from library…" first, or "Save to library" to create a new entry.');return;}
+  if(!confirm('Overwrite "'+LIB_CURRENT.name+'" in the shared library with the current sandbox?'))return;
+  try{
+    const r=await fetch(LIB_API+'/api/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:LIB_CURRENT.name,state:SB,overwrite:true,replaceId:LIB_CURRENT.id})});
+    if(!r.ok)throw new Error('save failed ('+r.status+')');
+    let j=null;try{j=await r.json();}catch(e){}
+    if(j&&j.id)LIB_CURRENT={id:j.id,name:LIB_CURRENT.name};
+    libSetLoaded(LIB_CURRENT.name+' — '+libFmtDate(new Date().toISOString()));
+    alert('Updated "'+LIB_CURRENT.name+'" in the shared library.');
+  }catch(err){
+    alert("Couldn't overwrite that library entry.\n\n("+((err&&err.message)||err)+")");
+  }
 }
 // ---- Load ----
 function libRenderPick(q){
@@ -4107,7 +4111,8 @@ function libRenderPick(q){
   if(!m.length){box.innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">No matches.</div>';return;}
   box.innerHTML=m.map(it=>'<div class="lib-pick-item" data-id="'+libEsc(it.id)+'">'+libEsc(libDisplayName(it))+'</div>').join('');
 }
-function libOpenLoad(){
+function libOpenLoad(goToSandbox){
+  LIB_GO_SB=!!goToSandbox;
   document.getElementById('lib-search').value='';
   document.getElementById('lib-pick-list').innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">Loading\u2026</div>';
   document.getElementById('lib-load-ov').style.display='flex';
@@ -4126,7 +4131,9 @@ document.getElementById('lib-pick-list').addEventListener('click',async e=>{
     if(!r.ok)throw new Error('fetch failed ('+r.status+')');
     const doc=await r.json();
     libApplyState(doc);
+    LIB_CURRENT={id:id,name:doc.name||(it?it.name:'')};
     libSetLoaded(disp||(doc.name?doc.name+(doc.savedAt?' \u2014 '+libFmtDate(doc.savedAt):''):''));
+    if(LIB_GO_SB){LIB_GO_SB=false;goSandbox();}
   }catch(err){alert("Couldn't load that version from the library.\n\n("+((err&&err.message)||err)+")");}
 });
 // ---- Manage ----
@@ -4153,6 +4160,7 @@ document.getElementById('libman-list').addEventListener('click',async e=>{
   try{
     const r=await fetch(LIB_API+'/api/scenarios?id='+encodeURIComponent(id),{method:'DELETE'});
     if(!r.ok)throw new Error('delete failed ('+r.status+')');
+    if(LIB_CURRENT&&LIB_CURRENT.id===id){LIB_CURRENT=null;libSetLoaded('');}
     libRenderMan(await libFetchList());
   }catch(err){
     alert("Couldn't delete that version.\n\n("+((err&&err.message)||err)+")");
@@ -4778,7 +4786,6 @@ function showBuildOwn(){ var bo=document.getElementById('build-own'); if(bo)bo.s
 function goSandbox(){ var b=document.querySelector('.tabs .tab[onclick*="sandbox"]'); if(b)goTab('sandbox',b); }
 sbHydrate();
 try{sbLoadThemeCols();}catch(e){}
-try{showLoadedSummary();}catch(e){console.error('summary',e);}
 loadAcademicsFromRepo().then(ok=>{ // automatic on startup — the directory lives in academics.xlsx in the repo, not in this file
   if(!ok)return; // no directory file — no error shown; names can be typed in manually wherever people are assigned
   try{sbRender();}catch(e){}
