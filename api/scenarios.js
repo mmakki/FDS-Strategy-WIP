@@ -106,8 +106,28 @@ module.exports = async (req, res) => {
       const state = body && body.state;
       if (!state) { res.status(400).json({ error: "missing 'state'" }); return; }
 
-      // Reject a name that's already in use (case-insensitive).
       const existing = await list({ prefix: PREFIX, token: TOKEN });
+
+      // Overwrite mode: replace an existing entry in place (same name, fresh
+      // timestamp). Saves the new copy FIRST, then removes the old one, so a
+      // failed save never loses data.
+      if (body && body.overwrite) {
+        const replaceId = body.replaceId ? String(body.replaceId) : null;
+        const old = replaceId
+          ? existing.blobs.find(b => b.pathname === replaceId)
+          : existing.blobs.find(b => nameFromPath(b.pathname).toLowerCase() === name.toLowerCase());
+        const ts = Date.now();
+        const pathname = `${PREFIX}${ts}__${encodeURIComponent(name)}.json`;
+        const payload = JSON.stringify({ name, savedAt: new Date(ts).toISOString(), state });
+        await saveBlob(pathname, payload);
+        if (old && old.pathname !== pathname) {
+          try { await del(old.url, { token: TOKEN }); } catch {}
+        }
+        res.status(200).json({ ok: true, name, id: pathname, uploadedAt: new Date(ts).toISOString(), replaced: old ? old.pathname : null });
+        return;
+      }
+
+      // Reject a name that's already in use (case-insensitive).
       const taken = existing.blobs.some(
         b => nameFromPath(b.pathname).toLowerCase() === name.toLowerCase()
       );
