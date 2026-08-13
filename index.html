@@ -239,6 +239,7 @@ input[type=range]{width:70px}
       </div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <button onclick="sbExportWord()">Export word doc</button>
       <button class="lm" onclick="libDoOverwrite()">Save (overwrite existing)</button>
       <button class="lm" onclick="libOpenSave()">Save to library</button>
       <button class="lm" onclick="libOpenLoad(true)">Load from library…</button>
@@ -4019,6 +4020,90 @@ function sbLoadBackup(){
   };inp.click();
 }
 function sbClearAll(){if(!confirm('Clear everything? This empties the whole structure \u2014 "Reset to v0.3" restores the strategy as drafted.'))return;SB={ideas:[],themes:[],objectives:[],initiatives:[],outcomes:[],_n:1};sbSelTheme=null;sbPersist();sbRender();}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// EXPORT WORD DOC \u2014 objective traceability tables + CoP evidence
+// (docx library lazy-loaded from jsDelivr on first use)
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function sbLoadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('script load failed'));document.head.appendChild(s);});}
+async function sbExportWord(){
+  if(!SB.themes||!SB.themes.length){alert('Nothing to export yet \u2014 load a version from the library or build the strategy first.');return;}
+  try{
+    if(!(window.docx&&window.docx.Document))await sbLoadScript('https://cdn.jsdelivr.net/npm/docx@9.5.1/dist/index.iife.js');
+  }catch(e){alert('Word export needs an internet connection the first time (it loads a small library). Please try again when online.');return;}
+  try{
+    const D=window.docx;
+    const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,ShadingType,AlignmentType,LevelFormat,PageBreak,BorderStyle,PageOrientation,VerticalAlign}=D;
+    const W_LBL={tl:'Teaching & Learning',res:'Research',fow:'Future of Work',ind:'Indigenous CoP'};
+    const W_COL={tl:'2E6FB7',res:'CE7A2A',fow:'1F7D5C',ind:'7050A0'};
+    const W_BG={tl:'E9F1FA',res:'FBF0E4',fow:'E5F2ED',ind:'F0EBF8'};
+    const INIT_COL='2C72B0',OUT_COL='C27407';
+    const ds=new Date().toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+    const numbering={config:[{reference:'bul',levels:[{level:0,format:LevelFormat.BULLET,text:'\u2022',alignment:AlignmentType.LEFT,style:{paragraph:{indent:{left:220,hanging:160}}}}]}]};
+    const BORDER={style:BorderStyle.SINGLE,size:4,color:'CCCCCC'};
+    const CELLB={top:BORDER,bottom:BORDER,left:BORDER,right:BORDER};
+    const bullet=(text,extra)=>{const runs=[new TextRun({text,size:17,color:'202020'})];if(extra)runs.push(extra);return new Paragraph({numbering:{reference:'bul',level:0},spacing:{after:60},children:runs});};
+    const cellPara=(text,opts)=>{opts=opts||{};return new Paragraph({spacing:{after:opts.after==null?40:opts.after},children:[new TextRun({text,size:opts.size||17,bold:!!opts.bold,italics:!!opts.italics,color:opts.color||'202020'})]});};
+    const headCell=(text,w,bg,fg)=>new TableCell({width:{size:w,type:WidthType.DXA},borders:CELLB,shading:{type:ShadingType.CLEAR,fill:bg},verticalAlign:VerticalAlign.CENTER,margins:{top:60,bottom:60,left:100,right:100},children:[new Paragraph({children:[new TextRun({text:String(text).toUpperCase(),bold:true,size:16,color:fg||'FFFFFF',characterSpacing:16})]})]});
+    const bodyCell=(kids,w,bg)=>new TableCell({width:{size:w,type:WidthType.DXA},borders:CELLB,shading:bg?{type:ShadingType.CLEAR,fill:bg}:undefined,margins:{top:80,bottom:40,left:100,right:100},children:kids.length?kids:[cellPara('\u2014',{color:'BBBBBB'})]});
+    const W_OBJ=3800,W_INIT=5800,W_OUT=5798;
+    const TOTAL=W_OBJ+W_INIT+W_OUT;
+    const W_COP=Math.floor(TOTAL/4);
+    const COP_KEYS=['tl','res','fow','ind'];
+
+    const kids=[];
+    kids.push(new Paragraph({spacing:{before:1500,after:120},children:[new TextRun({text:'FACULTY OF DESIGN & SOCIETY',bold:true,size:20,color:'888888',characterSpacing:36})]}));
+    kids.push(new Paragraph({spacing:{after:140},children:[new TextRun({text:'FDS Strategy',size:64,color:'111111'})]}));
+    kids.push(new Paragraph({spacing:{after:500},children:[new TextRun({text:'Objective traceability \u2014 initiatives, outcomes and the Community of Practice evidence behind each theme',size:23,italics:true,color:'666666'})]}));
+    kids.push(new Paragraph({spacing:{after:100},children:[new TextRun({text:ds.toUpperCase(),bold:true,size:18,color:'888888',characterSpacing:24})]}));
+    kids.push(new Paragraph({spacing:{after:340},children:[new TextRun({text:SB.themes.length+' themes   \u00b7   '+SB.objectives.length+' objectives   \u00b7   '+SB.initiatives.length+' initiatives   \u00b7   '+(SB.outcomes||[]).length+' outcomes   \u00b7   '+SB.ideas.length+' Community of Practice inputs',size:20,color:'444444'})]}));
+    kids.push(new Paragraph({spacing:{before:240,after:140},children:[new TextRun({text:'STRATEGIC THEMES',bold:true,size:19,color:'888888',characterSpacing:30})]}));
+    SB.themes.forEach((t,i)=>{
+      kids.push(new Paragraph({spacing:{after:90},children:[
+        new TextRun({text:(i+1)+'.  ',bold:true,size:22,color:'AAAAAA'}),
+        new TextRun({text:t.name,bold:true,size:22,color:'111111'})]}));
+    });
+
+    SB.themes.forEach((t,ti)=>{
+      const objectives=SB.objectives.filter(o=>(o.themeIds||[]).includes(t.id));
+      const ideas=SB.ideas.filter(i=>(t.ideaIds||[]).includes(i.id));
+      kids.push(new Paragraph({children:[new PageBreak()]}));
+      kids.push(new Paragraph({spacing:{after:40},children:[new TextRun({text:'STRATEGIC THEME '+(ti+1),bold:true,size:17,color:'999999',characterSpacing:30})]}));
+      kids.push(new Paragraph({spacing:{after:60},children:[new TextRun({text:t.name,bold:true,size:32,color:'111111'})]}));
+      if(t.desc)kids.push(new Paragraph({spacing:{after:180},children:[new TextRun({text:t.desc,italics:true,size:20,color:'555555'})]}));
+
+      const rows=[new TableRow({tableHeader:true,children:[
+        headCell('Objective',W_OBJ,'111111'),
+        headCell('Initiatives',W_INIT,INIT_COL),
+        headCell('Outcomes',W_OUT,OUT_COL)]})];
+      objectives.forEach(o=>{
+        const inits=SB.initiatives.filter(g=>(g.objectiveIds||[]).includes(o.id));
+        const outs=objOutcomes(o.id);
+        const objCell=[cellPara(o.title,{bold:true,size:18})];
+        if(o.desc)objCell.push(cellPara(o.desc,{color:'777777',size:16}));
+        const initCell=inits.map(g=>bullet(g.title,(g.people&&g.people.length)?new TextRun({text:'  \u2014 '+g.people.join(', '),italics:true,size:15,color:'6A8FC0'}):null));
+        const outCell=outs.map(n=>{
+          const hz=n.horizon==='short'?'  SHORT TERM (2027\u201328)':n.horizon==='long'?'  LONG TERM (2029\u201330)':'';
+          return bullet(n.title,hz?new TextRun({text:hz,bold:true,size:14,color:OUT_COL}):null);
+        });
+        rows.push(new TableRow({children:[bodyCell(objCell,W_OBJ,'F7F7F5'),bodyCell(initCell,W_INIT),bodyCell(outCell,W_OUT)]}));
+      });
+      kids.push(new Table({columnWidths:[W_OBJ,W_INIT,W_OUT],width:{size:TOTAL,type:WidthType.DXA},rows}));
+
+      kids.push(new Paragraph({spacing:{before:220,after:80},children:[new TextRun({text:'COMMUNITY OF PRACTICE EVIDENCE',bold:true,size:17,color:'666666',characterSpacing:24})]}));
+      const copRows=[new TableRow({tableHeader:true,children:COP_KEYS.map(k=>headCell(W_LBL[k],W_COP,W_COL[k]))})];
+      copRows.push(new TableRow({children:COP_KEYS.map(k=>bodyCell(ideas.filter(i=>i.source===k).map(i=>bullet(i.text)),W_COP,W_BG[k]))}));
+      kids.push(new Table({columnWidths:COP_KEYS.map(()=>W_COP),width:{size:W_COP*4,type:WidthType.DXA},rows:copRows}));
+    });
+
+    const doc=new Document({numbering,styles:{default:{document:{run:{font:'Calibri'}}}},
+      sections:[{properties:{page:{size:{width:11906,height:16838,orientation:PageOrientation.LANDSCAPE},margin:{top:700,bottom:700,left:700,right:700}}},children:kids}]});
+    const blob=await Packer.toBlob(doc);
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='FDS-Strategy.docx';a.click();
+  }catch(err){
+    alert("Couldn't build the Word document.\n\n("+((err&&err.message)||err)+")");
+  }
+}
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 // SHARED LIBRARY \u2014 save/load the sandbox to a shared library
