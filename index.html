@@ -152,6 +152,14 @@ input[type=range]{width:70px}
 .fc-theme-desc{font-size:10px;color:#777;padding:0 2px 5px;line-height:1.45}
 .fc-idea-text{font-size:11px;color:#333;padding:3px 2px;line-height:1.35}
 .flip-card-empty{font-size:12px;color:#999;padding:2rem;text-align:center}
+.lib-pick-item{padding:8px 10px;border-radius:7px;font-size:13px;color:#111;cursor:pointer;word-break:break-word}
+.lib-pick-item:hover{background:#F0EBF8}
+.libman-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:0.5px solid #e5e5e5;border-radius:8px;margin-bottom:6px;font-size:12.5px}
+.libman-name{flex:1;word-break:break-word}
+.libman-date{color:#999;font-size:11px;margin-left:8px;white-space:nowrap}
+.libman-del{background:#fff;color:#b03020;border:0.5px solid #e6b4b0;padding:4px 11px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.libman-del:hover{background:#fbeceb}
+.libman-del[disabled]{opacity:.6;cursor:progress}
 @media (max-width:1500px){.sb-theme-split{grid-template-columns:1fr !important}
   .sb-theme-div{display:none !important}
   #sb-theme-head{padding-right:0 !important;border-bottom:1px solid #f0f0f0;padding-bottom:12px;margin-bottom:12px}
@@ -253,16 +261,21 @@ input[type=range]{width:70px}
         <span style="font-size:11px;color:#999">Initiatives <strong id="sb-fc-initiatives" style="color:#111">0</strong></span>
         <span style="font-size:11px;color:#999">Outcomes <strong id="sb-fc-outcomes" style="color:#111">0</strong></span>
         <span style="font-size:11px;color:#999">CoP inputs <strong id="sb-fc-ideas" style="color:#111">0</strong></span>
+        <span id="lib-loaded" style="font-size:11px;color:#7050A0;font-weight:600;display:none"></span>
       </div>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-      <button class="pri" onclick="sbOpenMatrix()">Matrix check</button>
-      <button onclick="sbExportCSV()">Export CSV</button>
-      <button onclick="sbSaveBackup()">Save backup</button>
       <button onclick="sbLoadBackup()">Load backup</button>
-      <button onclick="sbResetV03()" style="color:#b03020;border-color:#f0c0b8">Reset to v0.3</button>
+      <button class="lm" onclick="libOpenSave()">Save to library</button>
+      <button class="lm" onclick="libOpenLoad()">Load from library…</button>
+      <button onclick="libOpenMan()">Manage library</button>
     </div>
   </div>
+</div>
+
+<!-- matrix check -->
+<div style="margin-bottom:1rem">
+  <button class="pri" onclick="sbOpenMatrix()">Matrix check</button>
 </div>
 
 <!-- two columns: strategy on the left, evidence on the right -->
@@ -349,6 +362,44 @@ input[type=range]{width:70px}
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
       <button onclick="sbCloseModal()">Cancel</button>
       <button class="pri" id="sb-m-save" onclick="sbModalSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARED LIBRARY MODALS -->
+<div id="lib-save-ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:2200;display:none;align-items:center;justify-content:center" onclick="if(event.target===this)libCloseSave()">
+  <div style="background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.5rem;width:430px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,0.12)">
+    <h3 style="font-size:14px;font-weight:500;margin-bottom:6px">Save to shared library</h3>
+    <div style="font-size:11px;color:#666;margin-bottom:12px;line-height:1.5">Saves the current sandbox as a new named entry that anyone with the link can load. Each name must be unique — existing entries are never overwritten.</div>
+    <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:4px">Your name</div>
+    <input id="lib-name" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Jane Smith" style="width:100%;box-sizing:border-box;margin-bottom:10px" oninput="libPreview()" onkeydown="if(event.key==='Enter'&&!document.getElementById('lib-go').disabled){event.preventDefault();libDoSave();}">
+    <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:4px">Version label <span style="font-weight:400;color:#999">(optional)</span></div>
+    <input id="lib-label" type="text" maxlength="80" autocomplete="off" placeholder="e.g. draft with new outcomes" style="width:100%;box-sizing:border-box;margin-bottom:10px" oninput="libPreview()" onkeydown="if(event.key==='Enter'&&!document.getElementById('lib-go').disabled){event.preventDefault();libDoSave();}">
+    <div style="font-size:11px;color:#666">Saved as: <b id="lib-preview"></b></div>
+    <div id="lib-note" style="font-size:11px;color:#b03020;font-weight:600;min-height:14px;margin-top:4px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button onclick="libCloseSave()">Cancel</button>
+      <button class="pri" id="lib-go" onclick="libDoSave()">Save</button>
+    </div>
+  </div>
+</div>
+<div id="lib-load-ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:2200;display:none;align-items:center;justify-content:center" onclick="if(event.target===this)libCloseLoad()">
+  <div style="background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.5rem;width:430px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,0.12)">
+    <h3 style="font-size:14px;font-weight:500;margin-bottom:10px">Load from library</h3>
+    <input id="lib-search" type="text" autocomplete="off" placeholder="Search saved versions…" style="width:100%;box-sizing:border-box;margin-bottom:8px" oninput="libRenderPick(this.value)">
+    <div id="lib-pick-list" style="max-height:300px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button onclick="libCloseLoad()">Close</button>
+    </div>
+  </div>
+</div>
+<div id="lib-man-ov" style="position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:2200;display:none;align-items:center;justify-content:center" onclick="if(event.target===this)libCloseMan()">
+  <div style="background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.5rem;width:430px;max-width:92vw;box-shadow:0 8px 30px rgba(0,0,0,0.12)">
+    <h3 style="font-size:14px;font-weight:500;margin-bottom:6px">Manage shared library</h3>
+    <div style="font-size:11px;color:#666;margin-bottom:12px">Delete saved versions. This removes them for everyone with the link and can't be undone.</div>
+    <div id="libman-list" style="max-height:300px;overflow-y:auto"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button onclick="libCloseMan()">Close</button>
     </div>
   </div>
 </div>
@@ -3995,8 +4046,122 @@ function sbLoadBackup(){
 }
 function sbClearAll(){if(!confirm('Clear everything? This empties the whole structure \u2014 "Reset to v0.3" restores the strategy as drafted.'))return;SB={ideas:[],themes:[],objectives:[],initiatives:[],outcomes:[],_n:1};sbSelTheme=null;sbPersist();sbRender();}
 
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// SHARED LIBRARY \u2014 save/load the sandbox to a shared library
+// (Vercel Blob via the serverless function in /api/scenarios.js)
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// Same-origin when hosted on Vercel. If you ever open the raw .html file
+// locally, set this to your deployed URL, e.g. "https://your-app.vercel.app".
+const LIB_API='';
+let LIB_ITEMS=[];
+function libEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function libFmtDate(iso){if(!iso)return'';const d=new Date(iso);if(isNaN(d.getTime()))return'';const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return d.getDate()+' '+m[d.getMonth()]+' '+d.getFullYear();}
+function libDisplayName(it){const dt=libFmtDate(it.uploadedAt);return dt?it.name+' \u2014 '+dt:it.name;}
+async function libFetchList(){const r=await fetch(LIB_API+'/api/scenarios',{cache:'no-store'});if(!r.ok)throw new Error('list failed ('+r.status+')');return r.json();}
+function libSetLoaded(name){const el=document.getElementById('lib-loaded');if(el){el.textContent=name?'Loaded from library: '+name:'';el.style.display=name?'':'none';}}
+// Apply a loaded sandbox state and refresh every view that shows it
+function libApplyState(d){
+  const st=d&&d.state?d.state:d;
+  if(!st||!st.themes||!st.objectives)throw new Error('bad state');
+  SB=st;
+  if(!SB.ideas)SB.ideas=[];if(!SB.initiatives)SB.initiatives=[];if(!SB.outcomes)SB.outcomes=[];if(!SB._n)SB._n=1;
+  SB._n=Math.max(SB._n,...[...SB.ideas,...SB.themes,...SB.objectives,...SB.initiatives,...SB.outcomes].map(x=>parseInt(String(x.id).replace('sb',''))||0),0)+1;
+  try{sbSelTheme=null;}catch(e){}
+  sbPersist();
+  try{sbRender();}catch(e){}
+  try{mapRender();}catch(e){}
+  try{refRender();}catch(e){}
+  try{renderCards();}catch(e){}
+  try{
+    const vis=document.getElementById('panel-vis');
+    const con=document.getElementById('subpanel-constellation');
+    if(vis&&vis.classList.contains('on')&&con&&con.classList.contains('on')){sStellarPositions=null;initConstellation();}
+  }catch(e){}
+}
+// ---- Save ----
+function libStoreName(){const nm=document.getElementById('lib-name').value.trim();const lb=document.getElementById('lib-label').value.trim();return[nm,lb].filter(Boolean).join(' - ');}
+function libPreview(){const b=libStoreName();document.getElementById('lib-preview').textContent=b||'\u2014';document.getElementById('lib-note').textContent='';document.getElementById('lib-go').disabled=!document.getElementById('lib-name').value.trim();}
+function libOpenSave(){document.getElementById('lib-name').value='';document.getElementById('lib-label').value='';libPreview();document.getElementById('lib-save-ov').style.display='flex';setTimeout(()=>document.getElementById('lib-name').focus(),30);}
+function libCloseSave(){document.getElementById('lib-save-ov').style.display='none';}
+async function libDoSave(){
+  if(!document.getElementById('lib-name').value.trim())return;
+  const btn=document.getElementById('lib-go');
+  const name=libStoreName();const was=btn.textContent;btn.disabled=true;btn.textContent='Saving\u2026';
+  try{
+    const r=await fetch(LIB_API+'/api/scenarios',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,state:SB})});
+    if(r.status===409){document.getElementById('lib-note').textContent='That name is already in use \u2014 choose another.';return;}
+    if(!r.ok)throw new Error('save failed ('+r.status+')');
+    libCloseSave();
+    libSetLoaded(name+' \u2014 '+libFmtDate(new Date().toISOString()));
+    alert('Saved to the shared library as "'+name+'".');
+  }catch(err){
+    alert("Couldn't save to the shared library.\nIf you're opening the file directly, use the hosted (Vercel) version instead.\n\n("+((err&&err.message)||err)+")");
+  }finally{btn.disabled=false;btn.textContent=was;}
+}
+// ---- Load ----
+function libRenderPick(q){
+  const box=document.getElementById('lib-pick-list');
+  if(!LIB_ITEMS.length){box.innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">No saved versions yet.</div>';return;}
+  const query=(q||'').trim().toLowerCase();
+  const m=LIB_ITEMS.filter(it=>libDisplayName(it).toLowerCase().includes(query));
+  if(!m.length){box.innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">No matches.</div>';return;}
+  box.innerHTML=m.map(it=>'<div class="lib-pick-item" data-id="'+libEsc(it.id)+'">'+libEsc(libDisplayName(it))+'</div>').join('');
+}
+function libOpenLoad(){
+  document.getElementById('lib-search').value='';
+  document.getElementById('lib-pick-list').innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">Loading\u2026</div>';
+  document.getElementById('lib-load-ov').style.display='flex';
+  libFetchList().then(items=>{LIB_ITEMS=items;libRenderPick('');setTimeout(()=>document.getElementById('lib-search').focus(),30);})
+    .catch(()=>{LIB_ITEMS=[];document.getElementById('lib-pick-list').innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center;line-height:1.5">Shared library unavailable.<br>If you\'re opening the file directly, use the hosted (Vercel) version instead.</div>';});
+}
+function libCloseLoad(){document.getElementById('lib-load-ov').style.display='none';}
+document.getElementById('lib-pick-list').addEventListener('click',async e=>{
+  const el=e.target.closest('.lib-pick-item');if(!el)return;
+  const id=el.getAttribute('data-id');
+  const it=LIB_ITEMS.find(x=>x.id===id);
+  const disp=it?libDisplayName(it):'';
+  libCloseLoad();
+  try{
+    const r=await fetch(LIB_API+'/api/scenarios?id='+encodeURIComponent(id),{cache:'no-store'});
+    if(!r.ok)throw new Error('fetch failed ('+r.status+')');
+    const doc=await r.json();
+    libApplyState(doc);
+    libSetLoaded(disp||(doc.name?doc.name+(doc.savedAt?' \u2014 '+libFmtDate(doc.savedAt):''):''));
+  }catch(err){alert("Couldn't load that version from the library.\n\n("+((err&&err.message)||err)+")");}
+});
+// ---- Manage ----
+function libRenderMan(items){
+  const box=document.getElementById('libman-list');
+  if(!items||!items.length){box.innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">No saved versions yet.</div>';return;}
+  box.innerHTML=items.map(it=>
+    '<div class="libman-row"><span class="libman-name">'+libEsc(it.name)+'<span class="libman-date">'+libEsc(libFmtDate(it.uploadedAt))+'</span></span>'+
+    '<button class="libman-del" data-id="'+libEsc(it.id)+'" title="Delete this saved version">Delete</button></div>').join('');
+}
+function libOpenMan(){
+  document.getElementById('libman-list').innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">Loading\u2026</div>';
+  document.getElementById('lib-man-ov').style.display='flex';
+  libFetchList().then(libRenderMan)
+    .catch(()=>{document.getElementById('libman-list').innerHTML='<div style="padding:10px;font-size:12px;color:#999;text-align:center">Couldn\'t load the library.</div>';});
+}
+function libCloseMan(){document.getElementById('lib-man-ov').style.display='none';}
+document.getElementById('libman-list').addEventListener('click',async e=>{
+  const btn=e.target.closest('.libman-del');if(!btn)return;
+  const id=btn.getAttribute('data-id');
+  const nm=btn.parentElement.querySelector('.libman-name').textContent;
+  if(!confirm('Delete "'+nm+'" from the shared library? This can\'t be undone.'))return;
+  btn.disabled=true;btn.textContent='Deleting\u2026';
+  try{
+    const r=await fetch(LIB_API+'/api/scenarios?id='+encodeURIComponent(id),{method:'DELETE'});
+    if(!r.ok)throw new Error('delete failed ('+r.status+')');
+    libRenderMan(await libFetchList());
+  }catch(err){
+    alert("Couldn't delete that version.\n\n("+((err&&err.message)||err)+")");
+    btn.disabled=false;btn.textContent='Delete';
+  }
+});
+
 // KEYBOARD
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){sbCloseModal();sbCloseMatrix();hideTT();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){sbCloseModal();sbCloseMatrix();hideTT();try{libCloseSave();libCloseLoad();libCloseMan();}catch(_e){}}});
 
 // ══════════════════════════════════════════
 // ODYSSEY VIEW — horseshoe arc (ring layout)
